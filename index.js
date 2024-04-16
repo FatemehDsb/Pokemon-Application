@@ -18,6 +18,7 @@ let attackBtn=document.getElementById("attackBtn");
 // 
 
 
+
 async function fetchDataAndCreateOptions(){
     const url = "https://pokeapi.co/api/v2/pokemon?limit=151";
     let response = await fetch (url)
@@ -194,7 +195,6 @@ async function renderPokemon(pokemonInstance, detailsId){
     pokemonCard.appendChild(statsContainer);
 }
 
-
 let compareBtn= document.getElementById("compareBtn");
 compareBtn.addEventListener("click", async ()=>{
     let pokemon1Url = dropDownMenu1.value;
@@ -213,35 +213,18 @@ compareBtn.addEventListener("click", async ()=>{
     let comparisonResult= Pokemon.comparePokemones(pokemon1Instance, pokemon2Instance);
 
     if (comparisonResult.pokemon1 > comparisonResult.pokemon2) {
-        detailElements1.style.backgroundColor = 'green';
-        detailElements2.style.backgroundColor = 'grey';
+       
+        detailElements1.classList.add("winnerCompare");
+        console.log(`${pokemon1Instance.name} wins!`);
+    compareResult.innerText=`${pokemon1Instance.name} wins!`;
+        
     } else if (comparisonResult.pokemon1 < comparisonResult.pokemon2) {
-        detailElements1.style.backgroundColor = 'grey';
-        detailElements2.style.backgroundColor = 'green';
+        
+        detailElements2.classList.add("winnerCompare");
+        compareResult.innerText=`${pokemon2Instance.name} wins!`;
+        console.log(`${pokemon2Instance.name} wins!`);
     } else {
         // För en oavgjord match, välj en neutral färg eller behåll bakgrundsfärgen oförändrad
-        console.log("It's a tie!");
-    }
-
-
-    function renderTheWinner(pokemonInstance){
-        const nameElement=document.getElementById("pokemonNameElement");
-        if(nameElement.innerText === pokemonInstance.name){
-    
-            nameElement.style.color="green";
-        }
-    }
-    
-
-    if (comparisonResult.pokemon1 > comparisonResult.pokemon2) {
-        console.log(`${pokemon1Instance.name} wins!`);
-        
-
-    } else if (comparisonResult.pokemon1 < comparisonResult.pokemon2) {
-        console.log(`${pokemon2Instance.name} wins!`);
-      
-
-    } else {
         console.log("It's a tie!");
     }
 });
@@ -275,15 +258,25 @@ async function startBattle (pokemon1, pokemon2){
     let attacker;
     let defender;
     let defenderDetailsId;
+    let attackerDetailsId;
+
+    const battleImage = document.getElementById('battleImage');
+    battleImage.style.display = 'block';
+
+    setTimeout(async () => {
+
+        battleImage.style.display = 'none';
 
     if (pokemon1.stats.speed >= pokemon2.stats.speed){
         attacker=pokemon1;
         defender=pokemon2;
         defenderDetailsId = 'pokemonDetails2';
+        attackerDetailsId='pokemonDetails1';
     }else{
         attacker=pokemon2;
         defender=pokemon1;
         defenderDetailsId = 'pokemonDetails1';
+        attackerDetailsId = 'pokemonDetails2';
     }
 
     while (attacker.stats.hp> 0 && defender.stats.hp> 0){
@@ -293,12 +286,21 @@ async function startBattle (pokemon1, pokemon2){
         if (defender.stats.hp<= 0){
             resultDisplay.innerText=`${defender.name} fainted. ${attacker.name} wins!`
             console.log(`${defender.name} fainted. ${attacker.name} wins!`);
-            document.getElementById(defenderDetailsId).style.backgroundColor = 'red';
+            document.getElementById(defenderDetailsId).classList.add("loserBattle");
+            document.getElementById(attackerDetailsId).classList.add("winnerGlow"); 
+            
+            setTimeout(() => {
+                document.getElementById(attackerDetailsId).classList.remove("winnerGlow");
+            }, 5000);  // Remove the effect after 5 seconds
             break;
+
+            
+
         }
         [attacker, defender] = [defender, attacker]; 
         defenderDetailsId = defenderDetailsId === 'pokemonDetails1' ? 'pokemonDetails2' : 'pokemonDetails1';
     }
+}, 2000);
 
  }
 
@@ -316,7 +318,8 @@ async function attack(attacker, defender){
     console.log(`${attacker.name} used ${attackName} and did ${actualDamage} damage. ${defender.name} remaining HP: ${defender.stats.hp}.`);
     
     if (defender.stats.hp <= 0) {
-        resultDisplay.innerText=`${defender.name} has fainted!`
+        resultDisplay.innerText=`${defender.name} has fainted!`;
+        resultDisplay.style.fontWeight="bold";
         console.log(`${defender.name} has fainted!`);
         // Here you might want to trigger any additional logic for when a Pokémon faints, like updating the UI
     }
@@ -328,17 +331,51 @@ function calculateDamage (attacker, defender){
     return (attackerAttack - defenderDefense) * 0.8;
 }
 
+function clearBattleResults() {
+    // Remove winner and loser classes
+    document.getElementById('pokemonDetails1').classList.remove("winnerGlow", "loserBattle");
+    document.getElementById('pokemonDetails2').classList.remove("winnerGlow", "loserBattle");
+
+    // Clear previous battle messages
+    attackDisplay.innerText = "";
+    resultDisplay.innerText = "";
+
+    // Optionally, reset HP or other stats if displayed on the UI
+    // Update this part based on how you display HP
+    // updatePokemonHP(pokemon1Instance, 'pokemonDetails1');
+    // updatePokemonHP(pokemon2Instance, 'pokemonDetails2');
+}
+
 attackBtn.addEventListener("click", async ()=>{
+
     const pokemon1Url = dropDownMenu1.value;
     const pokemon2Url = dropDownMenu2.value;
 
     const pokemon1Instance = await createPokemonInstanceFromUrl(pokemon1Url);
     const pokemon2Instance = await createPokemonInstanceFromUrl(pokemon2Url);
 
+
+    clearBattleResults(pokemon1Instance, pokemon2Instance); 
+
+    
+
+    if (!pokemon1Url || !pokemon2Url) {
+        alert("Please select both Pokémon before starting the battle.");
+        return;
+    }
+
+  
+    
+
+
+   
      startBattle(pokemon1Instance, pokemon2Instance);
    
 
 });
+
+
+
 
 
 
