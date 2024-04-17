@@ -17,14 +17,13 @@ let compareBtn= document.getElementById("compareBtn");
 
 //function to fetch url and create options for dropdownmenues
 async function fetchDataAndCreateOptions(){
+    const url = "https://pokeapi.co/api/v2/pokemon?limit=151";
     try{
-
-        const url = "https://pokeapi.co/api/v2/pokemon?limit=151";
-        let response = await fetch (url)
+        let response = await fetch (url);
         let data = await response.json();
         pokemonsArr=data.results;
         createDropdownOptions(pokemonsArr);
-    }catch{
+    }catch(error){
         console.log("error")
     }
 }
