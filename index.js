@@ -3,39 +3,42 @@ let dropdownOption;
 
 let dropDownMenu1=document.getElementById("pokemon-dropdown");
 let dropDownMenu2=document.getElementById("pokemon-dropdown-2");
+
 let compareResult=document.getElementById("compareResult");
 let battleResult=document.getElementById("battleResult");
 let attackDisplay=document.getElementById("attackDisplay");
 let resultDisplay=document.getElementById("resultDisplay");
 let backgroundImage = document.getElementById("backgroundImage");
 
-
-
-
-// let pokemonDetails = document.getElementById("Pokemon-details");
-
 let attackBtn=document.getElementById("attackBtn");
-// 
+let compareBtn= document.getElementById("compareBtn");
+ 
 
 
-
+//function to fetch url and create options for dropdownmenues
 async function fetchDataAndCreateOptions(){
-    const url = "https://pokeapi.co/api/v2/pokemon?limit=151";
-    let response = await fetch (url)
-    let data = await response.json();
-    pokemonsArr=data.results;
-   console.log(pokemonsArr);
-    createDropdownOptions(pokemonsArr);
+    try{
+
+        const url = "https://pokeapi.co/api/v2/pokemon?limit=151";
+        let response = await fetch (url)
+        let data = await response.json();
+        pokemonsArr=data.results;
+        createDropdownOptions(pokemonsArr);
+    }catch{
+        console.log("error")
+    }
 }
+//calling the function to fetch url 
 fetchDataAndCreateOptions();;
 
+//function to render dropdowns options
 function addOptionToDropdown(dropdown, pokemon) {
     const option = document.createElement("option");
     option.value = pokemon.url;
     option.innerText = pokemon.name;
     dropdown.appendChild(option);
 }
-
+//function to create dropdowns options
 function createDropdownOptions(pokemonsArr) {
     const dropdown1 = document.getElementById("pokemon-dropdown");
     const dropdown2 = document.getElementById("pokemon-dropdown-2");
@@ -46,8 +49,7 @@ function createDropdownOptions(pokemonsArr) {
     });
 }
 
-
-
+//pokemon class
 class Pokemon {
     constructor(name, image, types, weight, height, stats, moves){
         this.name=name;
@@ -73,15 +75,12 @@ class Pokemon {
             else if (pokemon1.stats[stat] < pokemon2.stats[stat]) wins.pokemon2++;
         });
 
-       
         return wins;
-        // console.log(wins);
-
     }
 }
 
-//fetch selected pokemon
 
+//function to make pokemon instances
 async function createPokemonInstance (pokemonData){
     const moves = pokemonData.moves.map(moveInfo=>{
         return {
@@ -105,44 +104,42 @@ async function createPokemonInstance (pokemonData){
         pokemonData.moves
     );
     return pokemonInstance;
-    // console.log(pokemonInstance);
-
 }
 
-
+//function to fetch value of selectedpokemon and render that pokemon
 async function fetchAndDisplayPokemon(url, detailsId){
-    let pokemonResponse = await fetch (url)
-    let pokemonData= await pokemonResponse.json();
-    let pokemonInstance = await createPokemonInstance(pokemonData);
-    await renderPokemon(pokemonInstance, detailsId);
+    try{
+
+        let pokemonResponse = await fetch (url)
+        let pokemonData= await pokemonResponse.json();
+        let pokemonInstance = await createPokemonInstance(pokemonData);
+        await renderPokemon(pokemonInstance, detailsId);
+    }catch{
+        console.log("Error!");
+    }
 }
 
-
+//Eventlisteners for dropdownmenues
 dropDownMenu1.addEventListener("change", async (event)=>{
-    // let url=dropDownMenu1.value;
      await fetchAndDisplayPokemon(event.target.value, 'pokemonDetails1');
   backgroundImage.style.display="none";
-   
 });
 
 dropDownMenu2.addEventListener("change", async (event)=>{
-    // let url=dropDownMenu2.value;
     await fetchAndDisplayPokemon(event.target.value, 'pokemonDetails2');
-  
 })
 
-
+//function to render the pokemon with two arguments of :
+//which pokemon, and where to render in HTML
 async function renderPokemon(pokemonInstance, detailsId){
-
-    // const pokemonContainer = document.getElementById(pokemonContainer)
 
     const detailsContainer = document.getElementById(detailsId);
     detailsContainer.innerText="";
 
-    const pokemonName = document.createElement("h2");
+    const pokemonName = document.createElement("h3");
     pokemonName.innerText=pokemonInstance.name;
     pokemonName.id = `pokemonName-${detailsId}`;
-    // pokemonName.id="pokemonNameElement";
+    
 
     const pokemonCard=document.createElement("div");
     pokemonCard.id="pokemonCard"
@@ -172,6 +169,8 @@ async function renderPokemon(pokemonInstance, detailsId){
 
     statsTitle.innerText='Stats';
 
+    //method that goes through stats object, and convert properties to 
+    //key and returns an array of arrays with key and value
     Object.entries(pokemonInstance.stats).forEach(([key, value])=>{
         const statLabel=document.createElement('p');
         statLabel.innerText= `${key.toUpperCase()}: `;
@@ -195,7 +194,7 @@ async function renderPokemon(pokemonInstance, detailsId){
     pokemonCard.appendChild(statsContainer);
 }
 
-let compareBtn= document.getElementById("compareBtn");
+//method to compare pokemons
 compareBtn.addEventListener("click", async ()=>{
     let pokemon1Url = dropDownMenu1.value;
     let pokemon2Url = dropDownMenu2.value;
@@ -206,7 +205,6 @@ compareBtn.addEventListener("click", async ()=>{
     const detailElements1 = document.getElementById('pokemonDetails1');
     const detailElements2 = document.getElementById('pokemonDetails2');
 
-    // Anta att vi rensar tidigare stilar vid varje jämförelse
     detailElements1.style.backgroundColor = '';
     detailElements2.style.backgroundColor = '';
 
@@ -215,6 +213,7 @@ compareBtn.addEventListener("click", async ()=>{
     if (comparisonResult.pokemon1 > comparisonResult.pokemon2) {
        
         detailElements1.classList.add("winnerCompare");
+       
         console.log(`${pokemon1Instance.name} wins!`);
     compareResult.innerText=`${pokemon1Instance.name} wins!`;
         
@@ -224,42 +223,29 @@ compareBtn.addEventListener("click", async ()=>{
         compareResult.innerText=`${pokemon2Instance.name} wins!`;
         console.log(`${pokemon2Instance.name} wins!`);
     } else {
-        // För en oavgjord match, välj en neutral färg eller behåll bakgrundsfärgen oförändrad
         console.log("It's a tie!");
     }
 });
-
+//function to fetch selectedpokemon and make instance
 async function createPokemonInstanceFromUrl(pokemonUrl){
     let pokemonResponse = await fetch (pokemonUrl);
     let pokemonData = await pokemonResponse.json();
     return createPokemonInstance(pokemonData);
 }
-
-
-
-
-
-   
-
-
+//function to update pokemonshp after attack
 function updatePokemonHP(pokemonInstance, detailsId) {
-   
-    const hpElement = document.getElementById(`hp-${detailsId}`);
-    if (hpElement) {
-        hpElement.innerText = `HP: ${pokemonInstance.stats.hp}`; // Update the text to reflect the new HP
-    } else {
-       
-        console.log('HP element not found, consider setting up the UI for this Pokémon.');
+    const statsContainer=document.getElementById(detailsId).querySelector("#stats-container");
+    const progressBar = statsContainer.querySelector("progress");
+    if (progressBar){
+        progressBar.value = pokemon.stats.hp;
     }
 }
-
 
 async function startBattle (pokemon1, pokemon2){
     let attacker;
     let defender;
     let defenderDetailsId;
     let attackerDetailsId;
-
     const battleImage = document.getElementById('battleImage');
     battleImage.style.display = 'block';
 
@@ -281,31 +267,26 @@ async function startBattle (pokemon1, pokemon2){
 
     while (attacker.stats.hp> 0 && defender.stats.hp> 0){
         await attack (attacker, defender);
-        updatePokemonHP(defender, defenderDetailsId);
+        
 
         if (defender.stats.hp<= 0){
             resultDisplay.innerText=`${defender.name} fainted. ${attacker.name} wins!`
             console.log(`${defender.name} fainted. ${attacker.name} wins!`);
             document.getElementById(defenderDetailsId).classList.add("loserBattle");
             document.getElementById(attackerDetailsId).classList.add("winnerGlow"); 
-            
+          
+
             setTimeout(() => {
                 document.getElementById(attackerDetailsId).classList.remove("winnerGlow");
-            }, 5000);  // Remove the effect after 5 seconds
+            }, 5000); 
             break;
-
-            
-
         }
         [attacker, defender] = [defender, attacker]; 
         defenderDetailsId = defenderDetailsId === 'pokemonDetails1' ? 'pokemonDetails2' : 'pokemonDetails1';
     }
-}, 2000);
-
+}, 1000);
  }
 
-
-//funktion-utföra attack
 
 
 async function attack(attacker, defender){
@@ -321,29 +302,23 @@ async function attack(attacker, defender){
         resultDisplay.innerText=`${defender.name} has fainted!`;
         resultDisplay.style.fontWeight="bold";
         console.log(`${defender.name} has fainted!`);
-        // Here you might want to trigger any additional logic for when a Pokémon faints, like updating the UI
+       
     }
 }
-//uppdatera HP 
+
 function calculateDamage (attacker, defender){
     const attackerAttack = attacker.stats.attack + attacker.stats.specialAttack;
     const defenderDefense = defender.stats.defense + defender.stats.specialDefense;
     return (attackerAttack - defenderDefense) * 0.8;
 }
 
+ // function to remove winner and loser classes
 function clearBattleResults() {
-    // Remove winner and loser classes
     document.getElementById('pokemonDetails1').classList.remove("winnerGlow", "loserBattle");
     document.getElementById('pokemonDetails2').classList.remove("winnerGlow", "loserBattle");
 
-    // Clear previous battle messages
     attackDisplay.innerText = "";
     resultDisplay.innerText = "";
-
-    // Optionally, reset HP or other stats if displayed on the UI
-    // Update this part based on how you display HP
-    // updatePokemonHP(pokemon1Instance, 'pokemonDetails1');
-    // updatePokemonHP(pokemon2Instance, 'pokemonDetails2');
 }
 
 attackBtn.addEventListener("click", async ()=>{
@@ -354,21 +329,7 @@ attackBtn.addEventListener("click", async ()=>{
     const pokemon1Instance = await createPokemonInstanceFromUrl(pokemon1Url);
     const pokemon2Instance = await createPokemonInstanceFromUrl(pokemon2Url);
 
-
     clearBattleResults(pokemon1Instance, pokemon2Instance); 
-
-    
-
-    if (!pokemon1Url || !pokemon2Url) {
-        alert("Please select both Pokémon before starting the battle.");
-        return;
-    }
-
-  
-    
-
-
-   
      startBattle(pokemon1Instance, pokemon2Instance);
    
 
